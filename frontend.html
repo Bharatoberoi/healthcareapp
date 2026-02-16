@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Cost Estimator - MCP Powered</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-reset {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+
+        .workflow-status {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+
+        .step.completed {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .step-number {
+            font-size: 0.9em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .step-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .step-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-card {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .result-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .rating {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .full-message {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .main-content,
+            .results-section,
+            .form-row,
+            .workflow-status {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .mcp-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff3cd;
+            color: #856404;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .mcp-dot {
+            width: 8px;
+            height: 8px;
+            background: #ffc107;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💊 Medical Cost Estimator</h1>
+            <p>Complete Workflow: Query Validation → Service Code → Provider → Cost Estimate</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">🏗️ Powered by Model Context Protocol (MCP)</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Form -->
+            <div class="card">
+                <h2>📝 Query Information</h2>
+                
+                <div class="form-group">
+                    <label for="query">Medical Query *</label>
+                    <textarea id="query" rows="3" placeholder="e.g., I need a chiropractor visit for back pain" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">User Location</label>
+                    <input type="text" id="location" placeholder="e.g., 12345 or zip code" value="12345">
+                </div>
+
+                <div class="form-group">
+                    <label for="insurance">Insurance Network</label>
+                    <input type="text" id="insurance" placeholder="e.g., Aetna, Blue Cross" value="Aetna">
+                </div>
+
+                <h3 style="color: #333; margin-top: 25px; margin-bottom: 15px;">💰 Insurance Details</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="deductible">Deductible Total ($)</label>
+                        <input type="number" id="deductible" value="1000" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="deductibleMet">Deductible Met ($)</label>
+                        <input type="number" id="deductibleMet" value="0" step="100">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="copay">Copay ($)</label>
+                        <input type="number" id="copay" value="0" step="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="coinsurance">Coinsurance (%)</label>
+                        <input type="number" id="coinsurance" value="20" step="5" min="0" max="100">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="outOfPocketMax">Out-of-Pocket Max ($)</label>
+                        <input type="number" id="outOfPocketMax" value="5000" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="outOfPocketMet">Out-of-Pocket Met ($)</label>
+                        <input type="number" id="outOfPocketMet" value="0" step="100">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-submit" id="submitBtn" onclick="testWorkflow()">🚀 Test Workflow</button>
+                    <button class="btn-reset" onclick="resetForm()">Reset</button>
+                </div>
+
+                <div id="loadingIndicator" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    Processing...
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card">
+                <h2>📊 Results</h2>
+                <div id="results" style="display: none;">
+                    <!-- Workflow Status -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #333; margin-bottom: 10px;">Workflow Status</h3>
+                        <div class="workflow-status">
+                            <div class="step completed" id="step1">
+                                <div class="step-icon">✓</div>
+                                <div class="step-name">Guardrail</div>
+                            </div>
+                            <div class="step completed" id="step2">
+                                <div class="step-icon">✓</div>
+                                <div class="step-name">Svc Code</div>
+                            </div>
+                            <div class="step completed" id="step3">
+                                <div class="step-icon">🌐</div>
+                                <div class="step-name">Provider <span class="mcp-indicator"><span class="mcp-dot"></span>MCP</span></div>
+                            </div>
+                            <div class="step completed" id="step4">
+                                <div class="step-icon">💰</div>
+                                <div class="step-name">Cost <span class="mcp-indicator"><span class="mcp-dot"></span>MCP</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Code Info -->
+                    <div class="result-card">
+                        <h3>📋 Service Code</h3>
+                        <div class="result-item">
+                            <span class="result-label">Primary Code</span>
+                            <span class="result-value" id="resultCode">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Service Type</span>
+                            <span class="result-value" id="resultType">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Alternatives</span>
+                            <span class="result-value" id="resultAlternatives">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Provider Info -->
+                    <div class="result-card">
+                        <h3>🏥 Provider Info</h3>
+                        <div class="result-item">
+                            <span class="result-label">Name</span>
+                            <span class="result-value" id="resultProvider">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Distance</span>
+                            <span class="result-value" id="resultDistance">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Rating</span>
+                            <span class="result-value" id="resultRating">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Network</span>
+                            <span class="result-value" id="resultNetwork">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Contracted Rate</span>
+                            <span class="result-value" id="resultRate">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Cost Breakdown -->
+                    <div class="result-card">
+                        <h3>💵 Cost Breakdown</h3>
+                        <div class="result-item">
+                            <span class="result-label">Total Cost</span>
+                            <span class="result-value" id="resultTotal">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Patient Pays</span>
+                            <span class="result-value" id="resultPatient">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Insurance Pays</span>
+                            <span class="result-value" id="resultInsurance">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Remaining Deductible</span>
+                            <span class="result-value" id="resultDeductible">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Final Message -->
+                    <div class="result-card">
+                        <h3>📤 Final Message</h3>
+                        <div id="resultMessage" class="full-message">-</div>
+                    </div>
+                </div>
+
+                <div id="noResults" style="text-align: center; padding: 40px 20px; color: #999;">
+                    <p style="font-size: 1.1em;">👈 Fill in the form and click "Test Workflow" to see results</p>
+                </div>
+
+                <div id="errorMessage" class="error" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- API Status -->
+        <div class="card">
+            <h2>🔧 System Status</h2>
+            <div class="form-row">
+                <div>
+                    <p><strong>API Endpoint:</strong> <code>http://localhost:8000</code></p>
+                    <p><strong>Status:</strong> <span id="apiStatus" style="color: #f44336;">Checking...</span></p>
+                </div>
+                <div>
+                    <p><strong>Architecture:</strong> MCP (Model Context Protocol)</p>
+                    <p><strong>Components:</strong> Main API + 2 MCP Servers</p>
+                </div>
+            </div>
+            <button class="btn-submit" style="margin-top: 15px;" onclick="checkStatus()">🔄 Check Status</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+
+        async function testWorkflow() {
+            const query = document.getElementById("query").value.trim();
+            
+            if (!query) {
+                showError("Please enter a medical query");
+                return;
+            }
+
+            const payload = {
+                query: query,
+                user_location: document.getElementById("location").value,
+                insurance_network: document.getElementById("insurance").value,
+                insurance_details: {
+                    deductible_total: parseFloat(document.getElementById("deductible").value),
+                    deductible_met: parseFloat(document.getElementById("deductibleMet").value),
+                    copay: parseFloat(document.getElementById("copay").value),
+                    coinsurance: parseFloat(document.getElementById("coinsurance").value),
+                    out_of_pocket_max: parseFloat(document.getElementById("outOfPocketMax").value),
+                    out_of_pocket_met: parseFloat(document.getElementById("outOfPocketMet").value)
+                }
+            };
+
+            showLoading(true);
+            clearError();
+
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/resolve-service-codes/complete-workflow`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayResults(result);
+                showLoading(false);
+            } catch (error) {
+                showLoading(false);
+                showError(`API Error: ${error.message}. Make sure all 3 servers are running!`);
+            }
+        }
+
+        function displayResults(data) {
+            if (!data.success) {
+                showError(data.error || "Unknown error");
+                return;
+            }
+
+            // Show results section
+            document.getElementById("results").style.display = "block";
+            document.getElementById("noResults").style.display = "none";
+
+            // Update workflow status
+            const steps = data.workflow_steps;
+            updateStepStatus("step1", steps.step_1_query_guardrail);
+            updateStepStatus("step2", steps.step_2_service_code_resolution);
+            updateStepStatus("step3", steps.step_3_provider_lookup);
+            updateStepStatus("step4", steps.step_4_cost_estimation);
+
+            // Service Code
+            const serviceInfo = data.service_code_info;
+            document.getElementById("resultCode").textContent = serviceInfo.primary_code;
+            document.getElementById("resultType").textContent = serviceInfo.service_type;
+            document.getElementById("resultAlternatives").textContent = serviceInfo.alternatives.join(", ");
+
+            // Provider
+            const provider = data.provider_info;
+            document.getElementById("resultProvider").textContent = provider.name;
+            document.getElementById("resultDistance").textContent = provider.distance;
+            document.getElementById("resultRating").innerHTML = `<span class="rating">${provider.rating}★</span>`;
+            document.getElementById("resultNetwork").textContent = provider.network_status;
+            document.getElementById("resultRate").textContent = provider.contracted_rate;
+
+            // Cost
+            const cost = data.cost_breakdown;
+            document.getElementById("resultTotal").textContent = cost.total_cost;
+            document.getElementById("resultPatient").innerHTML = `<span style="color: #d32f2f; font-weight: bold;">${cost.patient_responsibility}</span>`;
+            document.getElementById("resultInsurance").innerHTML = `<span style="color: #388e3c; font-weight: bold;">${cost.insurance_pays}</span>`;
+            document.getElementById("resultDeductible").textContent = cost.deductible_remaining;
+
+            // Message
+            document.getElementById("resultMessage").textContent = data.user_message.replace(/═+/g, "").trim();
+        }
+
+        function updateStepStatus(stepId, status) {
+            const step = document.getElementById(stepId);
+            if (status === "passed") {
+                step.classList.add("completed");
+                step.classList.remove("active");
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById("loadingIndicator").style.display = show ? "flex" : "none";
+            document.getElementById("submitBtn").disabled = show;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById("errorMessage");
+            errorDiv.textContent = message;
+            errorDiv.style.display = "block";
+        }
+
+        function clearError() {
+            document.getElementById("errorMessage").style.display = "none";
+        }
+
+        function resetForm() {
+            document.getElementById("query").value = "";
+            document.getElementById("location").value = "12345";
+            document.getElementById("insurance").value = "Aetna";
+            document.getElementById("deductible").value = "1000";
+            document.getElementById("deductibleMet").value = "0";
+            document.getElementById("copay").value = "0";
+            document.getElementById("coinsurance").value = "20";
+            document.getElementById("outOfPocketMax").value = "5000";
+            document.getElementById("outOfPocketMet").value = "0";
+            
+            document.getElementById("results").style.display = "none";
+            document.getElementById("noResults").style.display = "block";
+            clearError();
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    document.getElementById("apiStatus").style.color = "#4caf50";
+                    document.getElementById("apiStatus").textContent = "✓ Online";
+                } else {
+                    throw new Error("Not responding");
+                }
+            } catch (error) {
+                document.getElementById("apiStatus").style.color = "#f44336";
+                document.getElementById("apiStatus").textContent = "✗ Offline";
+            }
+        }
+
+        // Check status on page load
+        window.addEventListener("load", checkStatus);
+
+        // Pre-fill with example
+        window.addEventListener("load", () => {
+            document.getElementById("query").value = "I need a chiropractor visit for back pain";
+        });
+    </script>
+</body>
+</html>

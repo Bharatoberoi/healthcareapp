@@ -1,0 +1,15 @@
+grafana:
+  enabled: true
+  adminPassword: "changeme"         # override in production via secret or --set
+  service:
+    type: LoadBalancer
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelector:
+      matchLabels:
+        release: prometheus

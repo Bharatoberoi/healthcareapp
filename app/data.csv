@@ -1,0 +1,279 @@
+primary_svc_cd,servc_type,Consumer-Friendly Title,Consumer-Friendly Description,total_claim_count
+99392,CPT,99392: Well-Child Visit (Ages 1-4) 99391: Infant Well-Child Check-up,"99392: Well-Child Visit (Ages 1-4)
+99391: Infant Well-Child Check-up",160
+99396,CPT,99396: Established Preventive Visit (Ages 40-64) 99386: New Patient Preventive E,"99396: Established Preventive Visit (Ages 40-64)
+99386: New Patient Preventive Exam (Ages 40-64)
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",179
+99213,CPT,99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Patie,"99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",219
+99204,CPT,99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Patie,"99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",256
+99214,CPT,99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Patie,"99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",138
+99396,CPT,99385/99395/99386/99396: Preventative Visit G0439: Yearly Wellness Follow-up Vis,"99385/99395/99386/99396: Preventative Visit
+G0439: Yearly Wellness Follow-up Visit
+G0438: Initial Annual Wellness Visit",179
+99214,CPT, 99212/99213/99214: Established Patient Office Visit,"
+99212/99213/99214: Established Patient Office Visit",138
+99214,CPT,99439: Chronic Condition Management Support 99424: Managing a Complex Chronic Co,"99439: Chronic Condition Management Support
+99424: Managing a Complex Chronic Condition
+99490: Ongoing Support for Chronic Conditions
+99426: Care Management for One Complex Condition",138
+99459,CPT,99459: Pelvic Health Examination 99202/99203/99204: New Patient Office Visit 992,"99459: Pelvic Health Examination
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",69
+99204,CPT, 99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Pati,"
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",256
+99391,CPT,99392: Well-Child Visit (Ages 1-4) 99391: Infant Well-Child Check-up,"99392: Well-Child Visit (Ages 1-4)
+99391: Infant Well-Child Check-up",69
+58558,CPT,"58558: Uterine Scope, Biopsy & Polyp Removal","58558: Uterine Scope, Biopsy & Polyp Removal",207
+57454,CPT,57454: Cervix and Vagina Exam with Biopsy 57452: Detailed Cervical and Vaginal E,"57454: Cervix and Vagina Exam with Biopsy
+57452: Detailed Cervical and Vaginal Exam",69
+58558,CPT,"58558: Uterine Scope, Biopsy & Polyp Removal 58561: Surgical Removal of Uterine ","58558: Uterine Scope, Biopsy & Polyp Removal
+58561: Surgical Removal of Uterine Fibroids",207
+58100,CPT,58100: Uterine Lining Biopsy,58100: Uterine Lining Biopsy,69
+99396,CPT,S0612: Annual Gynecological Exam,S0612: Annual Gynecological Exam,179
+11102,CPT,11102: Skin Surface Biopsy 11103: Additional Skin Biopsy Sample,"11102: Skin Surface Biopsy
+11103: Additional Skin Biopsy Sample",69
+99204,CPT, 99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Pati,"
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit
+11105: Additional Skin Biopsy Sample",256
+11402,CPT,"11403: Removal of Benign Skin Lesion 11402: Skin Growth Removal (Trunk, Arms, Le","11403: Removal of Benign Skin Lesion
+11402: Skin Growth Removal (Trunk, Arms, Legs)
+11422: Removal of Benign Skin Growth
+11401: Benign Skin Growth Removal
+11104: Punch Biopsy of Skin
+17110: Non-Cancerous Skin Growth Removal",69
+11403,CPT,11403: Removal of Benign Skin Lesion 11422: Removal of Benign Skin Growth 11401:,"11403: Removal of Benign Skin Lesion
+11422: Removal of Benign Skin Growth
+11401: Benign Skin Growth Removal
+11104: Punch Biopsy of Skin
+17110: Non-Cancerous Skin Growth Removal
+21931: Removing Skin Growth from Back",109
+88305,CPT,88305: Surgical Tissue Examination by Pathologist 88302: Surgical Tissue Examina,"88305: Surgical Tissue Examination by Pathologist
+88302: Surgical Tissue Examination",69
+11621,CPT,11603: Removal of Cancerous Skin Growth 11602: Malignant Skin Growth Removal 116,"11603: Removal of Cancerous Skin Growth
+11602: Malignant Skin Growth Removal
+11621: Small Malignant Skin Lesion Removal",109
+11621,CPT,11104: Punch Biopsy of Skin,11104: Punch Biopsy of Skin,109
+11403,CPT,11403: Removal of Benign Skin Lesion 11422: Removal of Benign Skin Growth 11401:,"11403: Removal of Benign Skin Lesion
+11422: Removal of Benign Skin Growth
+11401: Benign Skin Growth Removal
+11104: Punch Biopsy of Skin
+17110: Non-Cancerous Skin Growth Removal",109
+11602,CPT,11603: Removal of Cancerous Skin Growth 11602: Malignant Skin Growth Removal 116,"11603: Removal of Cancerous Skin Growth
+11602: Malignant Skin Growth Removal
+11621: Small Malignant Skin Lesion Removal",69
+17110,CPT,11403: Removal of Benign Skin Lesion 11422: Removal of Benign Skin Growth 11401:,"11403: Removal of Benign Skin Lesion
+11422: Removal of Benign Skin Growth
+11401: Benign Skin Growth Removal
+11104: Punch Biopsy of Skin
+17110: Non-Cancerous Skin Growth Removal
+21931: Removing Skin Growth from Back",69
+11900,CPT,11900: Skin Lesion Injection Treatment 11901: Multiple Skin Lesion Injections,"11900: Skin Lesion Injection Treatment
+11901: Multiple Skin Lesion Injections",69
+11104,CPT,11403: Removal of Benign Skin Lesion 11422: Removal of Benign Skin Growth 11401:,"11403: Removal of Benign Skin Lesion
+11422: Removal of Benign Skin Growth
+11401: Benign Skin Growth Removal
+11104: Punch Biopsy of Skin
+17110: Non-Cancerous Skin Growth Removal",69
+98941,CPT,98941: Spinal Adjustment (3-4 Regions) 98940: Chiropractic Spinal Adjustment,"98941: Spinal Adjustment (3-4 Regions)
+98940: Chiropractic Spinal Adjustment",329
+98941,CPT,98941: Spinal Adjustment (3-4 Regions) 98940: Chiropractic Spinal Adjustment 989,"98941: Spinal Adjustment (3-4 Regions)
+98940: Chiropractic Spinal Adjustment
+98942: Full Spine Chiropractic Adjustment",329
+98941,CPT,99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Patie,"99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit
+97161: Low Complexity Physical Therapy Exam",329
+97163,CPT,97163: Detailed Physical Therapy Evaluation 97162: Moderate Physical Therapy Eva,"97163: Detailed Physical Therapy Evaluation
+97162: Moderate Physical Therapy Evaluation
+97161: Low Complexity Physical Therapy Exam",138
+97161,CPT,97163: Detailed Physical Therapy Evaluation 97162: Moderate Physical Therapy Eva,"97163: Detailed Physical Therapy Evaluation
+97162: Moderate Physical Therapy Evaluation
+97161: Low Complexity Physical Therapy Exam",109
+97110,CPT,97110: Therapeutic Exercise Sessions 97116: Gait Training Therapy 97530: One-on-,"97110: Therapeutic Exercise Sessions
+97116: Gait Training Therapy
+97530: One-on-One Therapeutic Activities",109
+97140,CPT,97110: Therapeutic Exercise Sessions 97116: Gait Training Therapy 97140: Hands-O,"97110: Therapeutic Exercise Sessions
+97116: Gait Training Therapy
+97140: Hands-On Manual Therapy
+97530: One-on-One Therapeutic Activities",179
+97164,CPT,97164: Physical Therapy Progress Check 97140: Hands-On Manual Therapy S8990: Phy,"97164: Physical Therapy Progress Check
+97140: Hands-On Manual Therapy
+S8990: Physical Therapy for Ongoing Support
+420: Physical Therapy Sessions",69
+97162,CPT,S8990: Physical Therapy for Ongoing Support 97140: Hands-On Manual Therapy 420: ,"S8990: Physical Therapy for Ongoing Support
+97140: Hands-On Manual Therapy
+420: Physical Therapy Sessions
+97530: One-on-One Therapeutic Activities",109
+97116,CPT,97110: Therapeutic Exercise Sessions 97116: Gait Training Therapy 420: Physical ,"97110: Therapeutic Exercise Sessions
+97116: Gait Training Therapy
+420: Physical Therapy Sessions
+S8990: Physical Therapy for Ongoing Support
+97530: One-on-One Therapeutic Activities",109
+97116,CPT,97110: Therapeutic Exercise Sessions 97116: Gait Training Therapy 420: Physical ,"97110: Therapeutic Exercise Sessions
+97116: Gait Training Therapy
+420: Physical Therapy Sessions
+97530: One-on-One Therapeutic Activities",109
+97110,CPT,97110: Therapeutic Exercise Sessions 97116: Gait Training Therapy 420: Physical ,"97110: Therapeutic Exercise Sessions
+97116: Gait Training Therapy
+420: Physical Therapy Sessions
+97140: Hands-On Manual Therapy
+97530: One-on-One Therapeutic Activities",109
+97140,CPT,97110: Therapeutic Exercise Sessions 420: Physical Therapy Sessions 97140: Hands,"97110: Therapeutic Exercise Sessions
+420: Physical Therapy Sessions
+97140: Hands-On Manual Therapy
+97530: One-on-One Therapeutic Activities",179
+97162,CPT,97163: Detailed Physical Therapy Evaluation 97162: Moderate Physical Therapy Eva,"97163: Detailed Physical Therapy Evaluation
+97162: Moderate Physical Therapy Evaluation
+97161: Low Complexity Physical Therapy Exam
+S8990: Physical Therapy for Ongoing Support",109
+97530,CPT,97110: Therapeutic Exercise Sessions 420: Physical Therapy Sessions S8990: Physi,"97110: Therapeutic Exercise Sessions
+420: Physical Therapy Sessions
+S8990: Physical Therapy for Ongoing Support
+97530: One-on-One Therapeutic Activities",69
+99204,CPT,G0463: Hospital Outpatient Clinic Visit 99202/99203/99204: New Patient Office Vi,"G0463: Hospital Outpatient Clinic Visit
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",256
+87880,CPT,87880: Strep A Infection Test 87430: Strep A Antigen Detection Test,"87880: Strep A Infection Test
+87430: Strep A Antigen Detection Test",69
+99472,CPT,99472: Daily Pediatric Intensive Care 99476: Daily Critical Care for Hospitalize,"99472: Daily Pediatric Intensive Care
+99476: Daily Critical Care for Hospitalized Young Children
+99233: Daily Inpatient Care for Complex Needs",69
+99284,CPT,"99283: Basic Emergency Room Visit 99284: Emergency Room Visit, Moderate Care 992","99283: Basic Emergency Room Visit
+99284: Emergency Room Visit, Moderate Care
+99282: Emergency Room Visit (Basic)",138
+73100,CPT,"99283: Basic Emergency Room Visit 99284: Emergency Room Visit, Moderate Care 992","99283: Basic Emergency Room Visit
+99284: Emergency Room Visit, Moderate Care
+99282: Emergency Room Visit (Basic)",69
+42820,CPT,42820: Childhood Tonsil and Adenoid Removal 42826: Tonsil Removal for Ages 12+ 9,"42820: Childhood Tonsil and Adenoid Removal
+42826: Tonsil Removal for Ages 12+
+99231: Daily Inpatient or Observation Care",109
+47562,CPT,47562: Keyhole Gallbladder Removal,47562: Keyhole Gallbladder Removal,179
+99283,CPT,"99283: Basic Emergency Room Visit 99284: Emergency Room Visit, Moderate Care 992","99283: Basic Emergency Room Visit
+99284: Emergency Room Visit, Moderate Care
+99282: Emergency Room Visit (Basic)",109
+44960,CPT,44960: Emergency Appendix Removal for Complications,44960: Emergency Appendix Removal for Complications,69
+47564,CPT,47562: Keyhole Gallbladder Removal,47562: Keyhole Gallbladder Removal,138
+42820,CPT,42820: Childhood Tonsil and Adenoid Removal 42830: Childhood Adenoid Removal Sur,"42820: Childhood Tonsil and Adenoid Removal
+42830: Childhood Adenoid Removal Surgery",109
+69210,CPT,99202/99203/99204: New Patient Office Visit 99212/99213/99214: Established Patie,"99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",109
+92557,CPT,92557: Comprehensive Hearing Test,92557: Comprehensive Hearing Test,69
+69436,CPT,69436: Ear Tube Placement 69433: Ear Tube Placement 69420: Ear Incision and Drai,"69436: Ear Tube Placement
+69433: Ear Tube Placement
+69420: Ear Incision and Drainage",109
+42826,CPT,42826: Tonsil Removal for Ages 12+ 42821: Tonsil and Adenoid Removal,"42826: Tonsil Removal for Ages 12+
+42821: Tonsil and Adenoid Removal",69
+42821,CPT,42826: Tonsil Removal for Ages 12+ 42821: Tonsil and Adenoid Removal,"42826: Tonsil Removal for Ages 12+
+42821: Tonsil and Adenoid Removal",69
+92504,CPT,92504: Ear Microscope Exam 99202/99203/99204: New Patient Office Visit 99212/992,"92504: Ear Microscope Exam
+99202/99203/99204: New Patient Office Visit
+99212/99213/99214: Established Patient Office Visit",109
+30140,CPT,30140: Nasal Airway Surgery 30130: Nasal Airway Surgery 30802: Shrinking Nasal O,"30140: Nasal Airway Surgery
+30130: Nasal Airway Surgery
+30802: Shrinking Nasal Obstruction Tissues",69
+70552,CPT,70552: MRI Brain Scan with Contrast 70551: Brain MRI Without Contrast,"70552: MRI Brain Scan with Contrast
+70551: Brain MRI Without Contrast",69
+30802,CPT,30140: Nasal Airway Surgery 30130: Nasal Airway Surgery 30802: Shrinking Nasal O,"30140: Nasal Airway Surgery
+30130: Nasal Airway Surgery
+30802: Shrinking Nasal Obstruction Tissues",69
+31295,CPT,31259: Endoscopic Nasal/Sinus Tissue Removal 31255: Total Ethmoid Sinus Surgery ,"31259: Endoscopic Nasal/Sinus Tissue Removal
+31255: Total Ethmoid Sinus Surgery
+31253: Full Sinus Endoscopic Surgery",109
+31255,CPT,31255: Total Ethmoid Sinus Surgery 31267: Maxillary Sinus Endoscopy and Tissue R,"31255: Total Ethmoid Sinus Surgery
+31267: Maxillary Sinus Endoscopy and Tissue Removal
+31288: Sphenoid Sinus Endoscopic Surgery",69
+31295,CPT,31295: Maxillary Sinus Opening Surgery 31257: Comprehensive Nasal and Sinus Surg,"31295: Maxillary Sinus Opening Surgery
+31257: Comprehensive Nasal and Sinus Surgery
+31253: Full Sinus Endoscopic Surgery",109
+95874,CPT,95874: Muscle Activity Guided Injection 31571: Vocal Cord Injection Procedure,"95874: Muscle Activity Guided Injection
+31571: Vocal Cord Injection Procedure",69
+69210,CPT,69210: Impacted Ear Wax Removal G0268: Ear Wax Removal with Hearing Test 69209: ,"69210: Impacted Ear Wax Removal
+G0268: Ear Wax Removal with Hearing Test
+69209: Impacted Ear Wax Removal",109
+45380,CPT,45380: Colonoscopy with Biopsy 45378: Diagnostic Colonoscopy,"45380: Colonoscopy with Biopsy
+45378: Diagnostic Colonoscopy",239
+45385,CPT,45385: Colonoscopy with Lesion Removal,45385: Colonoscopy with Lesion Removal,179
+45378,CPT,45380: Colonoscopy with Biopsy 45378: Diagnostic Colonoscopy,"45380: Colonoscopy with Biopsy
+45378: Diagnostic Colonoscopy",69
+45381,CPT,45380: Colonoscopy with Biopsy 45378: Diagnostic Colonoscopy,"45380: Colonoscopy with Biopsy
+45378: Diagnostic Colonoscopy",69
+45385,CPT,45380: Colonoscopy with Biopsy 45378: Diagnostic Colonoscopy,"45380: Colonoscopy with Biopsy
+45378: Diagnostic Colonoscopy",179
+77065,CPT,"77065: Diagnostic Mammogram, One Breast","77065: Diagnostic Mammogram, One Breast",219
+77066,CPT,"77065: Diagnostic Mammogram, One Breast 77066: Diagnostic Bilateral Mammogram","77065: Diagnostic Mammogram, One Breast
+77066: Diagnostic Bilateral Mammogram",179
+77065,CPT,"77065: Diagnostic Mammogram, One Breast 77066: Diagnostic Bilateral Mammogram","77065: Diagnostic Mammogram, One Breast
+77066: Diagnostic Bilateral Mammogram",219
+77067,CPT,77067: Routine Breast X-ray Screening,77067: Routine Breast X-ray Screening,160
+77062,CPT,77062: 3D Mammogram for Both Breasts,77062: 3D Mammogram for Both Breasts,69
+77066,CPT,77066: Diagnostic Bilateral Mammogram,77066: Diagnostic Bilateral Mammogram,179
+55250,CPT,55250: Vasectomy,55250: Vasectomy,294
+92004,CPT,92004: Comprehensive New Patient Eye Exam 92014: Thorough Eye Examination 92012:,"92004: Comprehensive New Patient Eye Exam
+92014: Thorough Eye Examination
+92012: Established Patient Eye Exam
+S0621: Routine Eye Checkup",138
+92015,CPT,92015: Eye Exam for Vision Correctness 99173: Vision Screening for Both Eyes,"92015: Eye Exam for Vision Correctness
+99173: Vision Screening for Both Eyes",219
+99392,CPT,92015: Eye Exam for Vision Correctness 99173: Vision Screening for Both Eyes,"92015: Eye Exam for Vision Correctness
+99173: Vision Screening for Both Eyes",160
+92015,CPT,92004: Comprehensive New Patient Eye Exam 92014: Thorough Eye Examination 92012:,"92004: Comprehensive New Patient Eye Exam
+92014: Thorough Eye Examination
+92012: Established Patient Eye Exam
+92015: Eye Exam for Vision Correctness
+S0621: Routine Eye Checkup",219
+99393,CPT,92004: Comprehensive New Patient Eye Exam 92014: Thorough Eye Examination 92012:,"92004: Comprehensive New Patient Eye Exam
+92014: Thorough Eye Examination
+92012: Established Patient Eye Exam
+92015: Eye Exam for Vision Correctness
+S0621: Routine Eye Checkup",69
+92004,CPT,92004: Comprehensive New Patient Eye Exam 92014: Thorough Eye Examination 92012:,"92004: Comprehensive New Patient Eye Exam
+92014: Thorough Eye Examination
+92012: Established Patient Eye Exam",138
+92014,CPT,92004: Comprehensive New Patient Eye Exam 92014: Thorough Eye Examination,"92004: Comprehensive New Patient Eye Exam
+92014: Thorough Eye Examination",138
+92014,CPT,92015: Eye Exam for Vision Correctness S0621: Routine Eye Checkup,"92015: Eye Exam for Vision Correctness
+S0621: Routine Eye Checkup",138
+92015,CPT,92015: Eye Exam for Vision Correctness,92015: Eye Exam for Vision Correctness,219
+49592,CPT,49592: Initial Repair of Small Belly Hernia,49592: Initial Repair of Small Belly Hernia,109
+49650,CPT,49650: Laparoscopic Inguinal Hernia Repair 49505: Initial Inguinal Hernia Repair,"49650: Laparoscopic Inguinal Hernia Repair
+49505: Initial Inguinal Hernia Repair",179
+49500,CPT,49592: Initial Repair of Small Belly Hernia,49592: Initial Repair of Small Belly Hernia,69
+44970,CPT,44970: Minimally Invasive Appendix Removal,44970: Minimally Invasive Appendix Removal,109
+47562,CPT,47562: Keyhole Gallbladder Removal 47564: Minimally Invasive Gallbladder Surgery,"47562: Keyhole Gallbladder Removal
+47564: Minimally Invasive Gallbladder Surgery with Duct Check",179
+47564,CPT,47562: Keyhole Gallbladder Removal 47564: Minimally Invasive Gallbladder Surgery,"47562: Keyhole Gallbladder Removal
+47564: Minimally Invasive Gallbladder Surgery with Duct Check",138
+47600,CPT,47562: Keyhole Gallbladder Removal 47564: Minimally Invasive Gallbladder Surgery,"47562: Keyhole Gallbladder Removal
+47564: Minimally Invasive Gallbladder Surgery with Duct Check",69
+44950,CPT,44970: Minimally Invasive Appendix Removal,44970: Minimally Invasive Appendix Removal,69
+98940,CPT,98940: Chiropractic Spinal Adjustment 98941: Spinal Adjustment (3-4 Regions) 971,"98940: Chiropractic Spinal Adjustment
+98941: Spinal Adjustment (3-4 Regions)
+97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",109
+97140,CPT,97124: Therapeutic Massage Session 98925: Osteopathic Hands on Therapy 97140: Ha,"97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",179
+97124,CPT,97124: Therapeutic Massage Session 98925: Osteopathic Hands on Therapy 97140: Ha,"97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",179
+98941,CPT,98940: Chiropractic Spinal Adjustment 98941: Spinal Adjustment (3-4 Regions) 971,"98940: Chiropractic Spinal Adjustment
+98941: Spinal Adjustment (3-4 Regions)
+97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",329
+97124,CPT,98940: Chiropractic Spinal Adjustment 98941: Spinal Adjustment (3-4 Regions) 971,"98940: Chiropractic Spinal Adjustment
+98941: Spinal Adjustment (3-4 Regions)
+97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",179
+97140,CPT,98940: Chiropractic Spinal Adjustment 98941: Spinal Adjustment (3-4 Regions) 971,"98940: Chiropractic Spinal Adjustment
+98941: Spinal Adjustment (3-4 Regions)
+97124: Therapeutic Massage Session
+98925: Osteopathic Hands on Therapy
+97140: Hands-On Manual Therapy",179

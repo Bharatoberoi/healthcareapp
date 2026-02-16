@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: service-code-slo-rules
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: service-code-resolution.rules
+    rules:
+    - record: job:p95_request_latency:95
+      expr: histogram_quantile(0.95, sum(rate(http_response_time_seconds_bucket[5m])) by (le))
+    - record: job:error_rate:5m
+      expr: sum(rate(http_errors_total[5m])) / sum(rate(http_requests_total[5m]))
+
+    - alert: HighRequestLatency
+      expr: job:p95_request_latency:95 > 0.05
+      for: 5m
+      labels:
+        severity: page
+      annotations:
+        summary: "P95 latency is high"
+        description: "P95 request latency > 50ms for more than 5 minutes."
+
+    - alert: HighErrorRate
+      expr: job:error_rate:5m > 0.01
+      for: 5m
+      labels:
+        severity: page
+      annotations:
+        summary: "High error rate"
+        description: "Error rate > 1% for more than 5 minutes."

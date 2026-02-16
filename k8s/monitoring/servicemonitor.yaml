@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: service-code-resolution-api
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: service-code-resolution-api
+  namespaceSelector:
+    any: true
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      honorLabels: true
