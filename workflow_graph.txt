@@ -1,0 +1,152 @@
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          USER QUERY INPUT                               │
+│          "I need a chiropractor visit for back pain"                    │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    STEP 1: QUERY GUARDRAIL                              │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ OptimizedQueryGuardrail                                   │          │
+│  │ • Layer 1: Pattern Matching (harmful content)             │          │
+│  │ • Layer 2: OpenAI Moderation API                          │          │
+│  │ • Layer 3: Semantic Similarity Check                      │          │
+│  │ • Layer 4: Intent Classification                          │          │
+│  └───────────────────────────────────────────────────────────┘          │
+│                                                                          │
+│  Decision: ✓ Valid Medical Query  or  ✗ Out-of-Scope/Harmful             │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│              STEP 2: SERVICE CODE RESOLUTION API                        │
+│                    (Your Current Application)                           │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ A. Query Enhancement (RAG)                                │          │
+│  │    • OpenAI Embeddings                                    │
+│  │    • FAISS Vector Search                                  │
+│  │    • Retrieve top-k similar service codes                 │
+│  └───────────────────────────────────────────────────────────┘          │
+│                           ▼                                              │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ B. Code Selection (LLM)                                   │
+│  │    • Semantic similarity scoring (70%)                    │
+│  │    • Claim volume weighting (30%)                         │
+│  │    • LLM selects best match                               │
+│  └───────────────────────────────────────────────────────────┘          │
+│                                                                          │
+│  OUTPUT:                                                                 │
+│  {                                                                       │
+│    "primary_code": "98940",                                             │
+│    "service_type": "Chiropractic",                                      │
+│    "title": "Chiropractic Manipulative Treatment",                      │
+│    "description": "Spinal manipulation 1-2 regions",                    │
+│    "alternatives": ["98941", "98942"],                                  │
+│    "confidence": 0.89                                                   │
+│  }                                                                       │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│               STEP 3: PROVIDER LOOKUP API                               │
+│                    (External/Next Service)                              │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ Input: service_code = "98940"                             │
+│  │        user_location = "zipcode/lat-long"                 │
+│  │        insurance_network = "Aetna/UHC/etc"                │
+│  └───────────────────────────────────────────────────────────┘          │
+│                           ▼                                              │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ Processing:                                               │
+│  │ • Search in-network providers                             │
+│  │ • Filter by distance/rating                               │
+│  │ • Check availability                                      │
+│  └───────────────────────────────────────────────────────────┘          │
+│                                                                          │
+│  OUTPUT:                                                                 │
+│  {                                                                       │
+│    "providers": [                                                        │
+│      {                                                                   │
+│        "name": "Dr. John Smith DC",                                     │
+│        "npi": "1234567890",                                             │
+│        "distance": "2.3 miles",                                         │
+│        "network_status": "in-network",                                  │
+│        "rating": 4.8,                                                   │
+│        "contracted_rate": "$45"                                         │
+│      }                                                                   │
+│    ]                                                                     │
+│  }                                                                       │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│               STEP 4: COST ESTIMATOR API                                │
+│                    (Final Calculation)                                  │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ Input:                                                    │
+│  │  • service_code = "98940"                                 │
+│  │  • provider_info (contracted_rate, network_status)        │
+│  │  • user_insurance (plan, deductible, copay, coinsurance)  │
+│  └───────────────────────────────────────────────────────────┘          │
+│                           ▼                                              │
+│  ┌───────────────────────────────────────────────────────────┐          │
+│  │ Calculation Logic:                                        │
+│  │ • Base rate: $45 (contracted)                             │
+│  │ • Deductible met? → No ($500 remaining)                   │
+│  │ • Coinsurance: 20% after deductible                       │
+│  │ • Copay: $0 (no copay for this service)                   │
+│  │                                                            │
+│  │ Estimated Patient Cost = $45 (full amount until deduct.)  │
+│  │ Insurance Pays = $0                                       │
+│  └───────────────────────────────────────────────────────────┘          │
+│                                                                          │
+│  OUTPUT:                                                                 │
+│  {                                                                       │
+│    "service_code": "98940",                                             │
+│    "service_description": "Chiropractic visit",                         │
+│    "provider": "Dr. John Smith DC",                                     │
+│    "total_cost": "$45.00",                                              │
+│    "patient_responsibility": "$45.00",                                  │
+│    "insurance_pays": "$0.00",                                           │
+│    "deductible_remaining": "$455.00",                                   │
+│    "explanation": "Applied to deductible",                              │
+│    "confidence": "High"                                                 │
+│  }                                                                       │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    FINAL OUTPUT TO USER                                 │
+│                                                                          │
+│  "Your estimated cost for a chiropractor visit is $45.00"              │
+│  "This will be applied to your deductible ($455 remaining)"            │
+│  "Provider: Dr. John Smith DC (2.3 miles away, 4.8★)"                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+DATA FLOW SUMMARY:
+
+User Query
+    ↓
+[Service Code Resolution API] → Service Code (98940)
+    ↓
+[Provider Lookup API] → Provider Info (rate, network, location)
+    ↓
+[Cost Estimator API] → Cost Breakdown + Explanation
+    ↓
+Final Estimate to User
+
+API INTEGRATION POINTS:
+
+1. Your API Output → Provider Lookup Input:
+   - primary_code, alternatives[]
+   - User location/preferences
+
+2. Provider Lookup Output → Cost Estimator Input:
+   - Provider NPI, contracted rates
+   - Network status
+   - Your API's service code
+
+3. Cost Estimator Output → User:
+   - Final cost estimate
+   - Insurance breakdown
+   - Provider details
