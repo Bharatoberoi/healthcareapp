@@ -1,0 +1,116 @@
+# Deploy FastAPI (medical-cost-api) to Google Cloud Run on every push to main.
+#
+# Required repository SECRETS (Settings → Secrets and variables → Actions):
+#   GCP_PROJECT_ID     GCP project id (e.g. test1-493607)
+#   GCP_SA_KEY         JSON key for a service account that can:
+#                      - push to Artifact Registry: REGION-docker.pkg.dev/PROJECT/cloud-run-source
+#                      - deploy Cloud Run service (e.g. roles/run.admin + iam.serviceAccountUser on runtime SA)
+#                      - optional: serviceusage.services.enable if you enable APIs from CI
+#
+# Required repository VARIABLES:
+#   CLOUDSQL_CONNECTION   Cloud SQL connection name: PROJECT:REGION:INSTANCE
+#
+# Optional VARIABLES (defaults shown in "Set environment" step):
+#   GCP_REGION, CLOUD_RUN_SERVICE, ARTIFACT_REPO, IMAGE_NAME,
+#   OPENAI_SECRET_NAME, DATABASE_SECRET_NAME
+#
+# One-time GCP: Secret Manager secrets (e.g. openai-api-key, database-url), IAM on Cloud Run SA
+# (secretAccessor + cloudsql.client). See scripts/deploy_cloud_run.ps1.
+
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-cloud-run-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        id: env
+        run: |
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then echo "Missing secret GCP_PROJECT_ID"; exit 1; fi
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then echo "Missing secret GCP_SA_KEY"; exit 1; fi
+          if [ -z "${{ vars.CLOUDSQL_CONNECTION }}" ]; then echo "Missing variable CLOUDSQL_CONNECTION"; exit 1; fi
+          REGION="${{ vars.GCP_REGION }}"
+          [ -z "$REGION" ] && REGION="us-central1"
+          SERVICE="${{ vars.CLOUD_RUN_SERVICE }}"
+          [ -z "$SERVICE" ] && SERVICE="medical-cost-api"
+          AR_REPO="${{ vars.ARTIFACT_REPO }}"
+          [ -z "$AR_REPO" ] && AR_REPO="cloud-run-source"
+          IMAGE_BASENAME="${{ vars.IMAGE_NAME }}"
+          [ -z "$IMAGE_BASENAME" ] && IMAGE_BASENAME="medical-cost-api"
+          OPENAI_SECRET="${{ vars.OPENAI_SECRET_NAME }}"
+          [ -z "$OPENAI_SECRET" ] && OPENAI_SECRET="openai-api-key"
+          DATABASE_SECRET="${{ vars.DATABASE_SECRET_NAME }}"
+          [ -z "$DATABASE_SECRET" ] && DATABASE_SECRET="database-url"
+          echo "REGION=$REGION" >> "$GITHUB_OUTPUT"
+          echo "SERVICE=$SERVICE" >> "$GITHUB_OUTPUT"
+          echo "AR_REPO=$AR_REPO" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_BASENAME=$IMAGE_BASENAME" >> "$GITHUB_OUTPUT"
+          echo "OPENAI_SECRET=$OPENAI_SECRET" >> "$GITHUB_OUTPUT"
+          echo "DATABASE_SECRET=$DATABASE_SECRET" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ steps.env.outputs.REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          REGISTRY="${{ steps.env.outputs.REGION }}-docker.pkg.dev/${PROJECT_ID}/${{ steps.env.outputs.AR_REPO }}"
+          IMAGE="${REGISTRY}/${{ steps.env.outputs.IMAGE_BASENAME }}:${GITHUB_SHA}"
+          echo "Deploying image: $IMAGE"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloud Run
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud run deploy "${{ steps.env.outputs.SERVICE }}" \
+            --project "${PROJECT_ID}" \
+            --region "${{ steps.env.outputs.REGION }}" \
+            --image "${IMAGE}" \
+            --platform managed \
+            --memory 4Gi \
+            --cpu 2 \
+            --min-instances 1 \
+            --max-instances 5 \
+            --timeout 300 \
+            --concurrency 20 \
+            --set-env-vars "PRELOAD_FAISS=true,LOG_LEVEL=INFO,ENVIRONMENT=production" \
+            --add-cloudsql-instances "${{ vars.CLOUDSQL_CONNECTION }}" \
+            --allow-unauthenticated \
+            --set-secrets "OPENAI_API_KEY=${{ steps.env.outputs.OPENAI_SECRET }}:latest,DATABASE_URL=${{ steps.env.outputs.DATABASE_SECRET }}:latest"
+
+      - name: Smoke test /health
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          URL=$(gcloud run services describe "${{ steps.env.outputs.SERVICE }}" \
+            --project "${PROJECT_ID}" \
+            --region "${{ steps.env.outputs.REGION }}" \
+            --format 'value(status.url)')
+          curl -fsS "${URL}/health"
