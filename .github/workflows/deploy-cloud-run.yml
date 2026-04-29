@@ -5,7 +5,7 @@
 #   GCP_SA_KEY         JSON key for a service account that can:
 #                      - push to Artifact Registry: REGION-docker.pkg.dev/PROJECT/cloud-run-source
 #                      - deploy Cloud Run service (e.g. roles/run.admin + iam.serviceAccountUser on runtime SA)
-#                      - optional: serviceusage.services.enable if you enable APIs from CI
+#                      - optional: Service Usage Consumer / Editor to enable APIs in CI (artifactregistry, run)
 #
 # Required repository VARIABLES:
 #   CLOUDSQL_CONNECTION   Cloud SQL connection name: PROJECT:REGION:INSTANCE
@@ -77,24 +77,46 @@ jobs:
       - name: Set gcloud project
         run: gcloud config set project "${{ steps.env.outputs.PROJECT_ID }}"
 
+      - name: Enable APIs (grant SA serviceusage.services.enable or run once as owner)
+        run: |
+          gcloud services enable artifactregistry.googleapis.com run.googleapis.com \
+            --project "${{ steps.env.outputs.PROJECT_ID }}"
+
+      - name: Ensure Artifact Registry Docker repository exists
+        run: |
+          REPO="${{ steps.env.outputs.AR_REPO }}"
+          REGION="${{ steps.env.outputs.REGION }}"
+          PROJECT="${{ steps.env.outputs.PROJECT_ID }}"
+          if gcloud artifacts repositories describe "$REPO" --location="$REGION" --project="$PROJECT" 2>/dev/null; then
+            echo "Repository $REPO already exists"
+          else
+            gcloud artifacts repositories create "$REPO" \
+              --repository-format=docker \
+              --location="$REGION" \
+              --project="$PROJECT" \
+              --description="Cloud Run container images"
+          fi
+
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker "${{ steps.env.outputs.REGION }}-docker.pkg.dev" --quiet
 
       - name: Build and push image
+        id: build_push
         run: |
+          set -euxo pipefail
           REGISTRY="${{ steps.env.outputs.REGION }}-docker.pkg.dev/${{ steps.env.outputs.PROJECT_ID }}/${{ steps.env.outputs.AR_REPO }}"
           IMAGE="${REGISTRY}/${{ steps.env.outputs.IMAGE_BASENAME }}:${GITHUB_SHA}"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
           echo "Deploying image: $IMAGE"
           docker build -t "$IMAGE" .
           docker push "$IMAGE"
-          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy "${{ steps.env.outputs.SERVICE }}" \
             --project "${{ steps.env.outputs.PROJECT_ID }}" \
             --region "${{ steps.env.outputs.REGION }}" \
-            --image "${IMAGE}" \
+            --image "${{ steps.build_push.outputs.image }}" \
             --platform managed \
             --memory 4Gi \
             --cpu 2 \
