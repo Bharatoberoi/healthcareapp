@@ -5,7 +5,9 @@
 #   GCP_SA_KEY         JSON key for a service account that can:
 #                      - push to Artifact Registry: REGION-docker.pkg.dev/PROJECT/cloud-run-source
 #                      - deploy Cloud Run service (e.g. roles/run.admin + iam.serviceAccountUser on runtime SA)
-#                      - optional: Service Usage Consumer / Editor to enable APIs in CI (artifactregistry, run)
+#                      - create AR repo if missing: roles/artifactregistry.admin (or repo admin variant)
+#   Enabling APIs (artifactregistry, run): either grant this SA roles/serviceusage.serviceUsageAdmin
+#   on the project, OR enable APIs once as a project Owner (recommended in locked-down orgs).
 #
 # Required repository VARIABLES:
 #   CLOUDSQL_CONNECTION   Cloud SQL connection name: PROJECT:REGION:INSTANCE
@@ -77,7 +79,12 @@ jobs:
       - name: Set gcloud project
         run: gcloud config set project "${{ steps.env.outputs.PROJECT_ID }}"
 
-      - name: Enable APIs (grant SA serviceusage.services.enable or run once as owner)
+      # Fails with AUTH_PERMISSION_DENIED unless the SA has roles/serviceusage.serviceUsageAdmin
+      # (or broader Editor/Owner). If your org only allows Owners to enable APIs, run once locally:
+      #   gcloud services enable artifactregistry.googleapis.com run.googleapis.com --project=PROJECT_ID
+      # continue-on-error: workflow still works when APIs are already enabled on the project.
+      - name: Enable APIs (optional if SA has rights or APIs already on)
+        continue-on-error: true
         run: |
           gcloud services enable artifactregistry.googleapis.com run.googleapis.com \
             --project "${{ steps.env.outputs.PROJECT_ID }}"
