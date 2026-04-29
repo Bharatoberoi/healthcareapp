@@ -1,7 +1,7 @@
 # Deploy FastAPI (medical-cost-api) to Google Cloud Run on every push to main.
 #
 # Required repository SECRETS (Settings → Secrets and variables → Actions):
-#   GCP_PROJECT_ID     GCP project id (e.g. test1-493607)
+#   GCP_PROJECT        GCP project id (e.g. test1-493607) — or use GCP_PROJECT_ID instead
 #   GCP_SA_KEY         JSON key for a service account that can:
 #                      - push to Artifact Registry: REGION-docker.pkg.dev/PROJECT/cloud-run-source
 #                      - deploy Cloud Run service (e.g. roles/run.admin + iam.serviceAccountUser on runtime SA)
@@ -41,7 +41,9 @@ jobs:
       - name: Set environment
         id: env
         run: |
-          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then echo "Missing secret GCP_PROJECT_ID"; exit 1; fi
+          PROJECT_ID="${{ secrets.GCP_PROJECT }}"
+          [ -z "$PROJECT_ID" ] && PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          if [ -z "$PROJECT_ID" ]; then echo "Missing secret GCP_PROJECT or GCP_PROJECT_ID"; exit 1; fi
           if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then echo "Missing secret GCP_SA_KEY"; exit 1; fi
           if [ -z "${{ vars.CLOUDSQL_CONNECTION }}" ]; then echo "Missing variable CLOUDSQL_CONNECTION"; exit 1; fi
           REGION="${{ vars.GCP_REGION }}"
@@ -56,6 +58,7 @@ jobs:
           [ -z "$OPENAI_SECRET" ] && OPENAI_SECRET="openai-api-key"
           DATABASE_SECRET="${{ vars.DATABASE_SECRET_NAME }}"
           [ -z "$DATABASE_SECRET" ] && DATABASE_SECRET="database-url"
+          echo "PROJECT_ID=$PROJECT_ID" >> "$GITHUB_OUTPUT"
           echo "REGION=$REGION" >> "$GITHUB_OUTPUT"
           echo "SERVICE=$SERVICE" >> "$GITHUB_OUTPUT"
           echo "AR_REPO=$AR_REPO" >> "$GITHUB_OUTPUT"
@@ -75,10 +78,8 @@ jobs:
         run: gcloud auth configure-docker "${{ steps.env.outputs.REGION }}-docker.pkg.dev" --quiet
 
       - name: Build and push image
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          REGISTRY="${{ steps.env.outputs.REGION }}-docker.pkg.dev/${PROJECT_ID}/${{ steps.env.outputs.AR_REPO }}"
+          REGISTRY="${{ steps.env.outputs.REGION }}-docker.pkg.dev/${{ steps.env.outputs.PROJECT_ID }}/${{ steps.env.outputs.AR_REPO }}"
           IMAGE="${REGISTRY}/${{ steps.env.outputs.IMAGE_BASENAME }}:${GITHUB_SHA}"
           echo "Deploying image: $IMAGE"
           docker build -t "$IMAGE" .
@@ -86,11 +87,9 @@ jobs:
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Deploy to Cloud Run
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           gcloud run deploy "${{ steps.env.outputs.SERVICE }}" \
-            --project "${PROJECT_ID}" \
+            --project "${{ steps.env.outputs.PROJECT_ID }}" \
             --region "${{ steps.env.outputs.REGION }}" \
             --image "${IMAGE}" \
             --platform managed \
@@ -106,11 +105,9 @@ jobs:
             --set-secrets "OPENAI_API_KEY=${{ steps.env.outputs.OPENAI_SECRET }}:latest,DATABASE_URL=${{ steps.env.outputs.DATABASE_SECRET }}:latest"
 
       - name: Smoke test /health
-        env:
-          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           URL=$(gcloud run services describe "${{ steps.env.outputs.SERVICE }}" \
-            --project "${PROJECT_ID}" \
+            --project "${{ steps.env.outputs.PROJECT_ID }}" \
             --region "${{ steps.env.outputs.REGION }}" \
             --format 'value(status.url)')
           curl -fsS "${URL}/health"
