@@ -6,8 +6,9 @@
 #                      - push to Artifact Registry: REGION-docker.pkg.dev/PROJECT/cloud-run-source
 #                      - deploy Cloud Run service (e.g. roles/run.admin + iam.serviceAccountUser on runtime SA)
 #                      - create AR repo if missing: roles/artifactregistry.admin (or repo admin variant)
-#   Enabling APIs (artifactregistry, run): either grant this SA roles/serviceusage.serviceUsageAdmin
-#   on the project, OR enable APIs once as a project Owner (recommended in locked-down orgs).
+#   Enabling APIs (cloudresourcemanager, artifactregistry, run): grant the SA
+#   roles/serviceusage.serviceUsageAdmin or enable once as project Owner (recommended in locked-down orgs).
+#   Cloud Resource Manager must be enabled for gcloud to resolve the project cleanly.
 #
 # Billing: Artifact Registry and Cloud Run require an active billing account linked to the GCP project
 # (BILLING_DISABLED will fail repo create / deploy until billing is enabled in Cloud Console).
@@ -43,14 +44,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Do not embed GCP_SA_KEY in the script (multiline JSON breaks `[ -z "..." ]` → "[: too many arguments").
       - name: Set environment
         id: env
+        env:
+          GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          CLOUDSQL_CONNECTION: ${{ vars.CLOUDSQL_CONNECTION }}
         run: |
-          PROJECT_ID="${{ secrets.GCP_PROJECT }}"
-          [ -z "$PROJECT_ID" ] && PROJECT_ID="${{ secrets.GCP_PROJECT_ID }}"
+          PROJECT_ID="${GCP_PROJECT:-}"
+          [ -z "$PROJECT_ID" ] && PROJECT_ID="${GCP_PROJECT_ID:-}"
           if [ -z "$PROJECT_ID" ]; then echo "Missing secret GCP_PROJECT or GCP_PROJECT_ID"; exit 1; fi
-          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then echo "Missing secret GCP_SA_KEY"; exit 1; fi
-          if [ -z "${{ vars.CLOUDSQL_CONNECTION }}" ]; then echo "Missing variable CLOUDSQL_CONNECTION"; exit 1; fi
+          if [ -z "$GCP_SA_KEY" ]; then echo "Missing secret GCP_SA_KEY"; exit 1; fi
+          if [ -z "$CLOUDSQL_CONNECTION" ]; then echo "Missing variable CLOUDSQL_CONNECTION"; exit 1; fi
           REGION="${{ vars.GCP_REGION }}"
           [ -z "$REGION" ] && REGION="us-central1"
           SERVICE="${{ vars.CLOUD_RUN_SERVICE }}"
@@ -84,12 +91,13 @@ jobs:
 
       # Fails with AUTH_PERMISSION_DENIED unless the SA has roles/serviceusage.serviceUsageAdmin
       # (or broader Editor/Owner). If your org only allows Owners to enable APIs, run once locally:
-      #   gcloud services enable artifactregistry.googleapis.com run.googleapis.com --project=PROJECT_ID
+      #   gcloud services enable cloudresourcemanager.googleapis.com artifactregistry.googleapis.com run.googleapis.com --project=PROJECT_ID
       # continue-on-error: workflow still works when APIs are already enabled on the project.
       - name: Enable APIs (optional if SA has rights or APIs already on)
         continue-on-error: true
         run: |
-          gcloud services enable artifactregistry.googleapis.com run.googleapis.com \
+          gcloud services enable cloudresourcemanager.googleapis.com \
+            artifactregistry.googleapis.com run.googleapis.com \
             --project "${{ steps.env.outputs.PROJECT_ID }}"
 
       - name: Ensure Artifact Registry Docker repository exists
