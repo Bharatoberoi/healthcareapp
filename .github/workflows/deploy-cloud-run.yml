@@ -9,6 +9,9 @@
 #   Enabling APIs (artifactregistry, run): either grant this SA roles/serviceusage.serviceUsageAdmin
 #   on the project, OR enable APIs once as a project Owner (recommended in locked-down orgs).
 #
+# Billing: Artifact Registry and Cloud Run require an active billing account linked to the GCP project
+# (BILLING_DISABLED will fail repo create / deploy until billing is enabled in Cloud Console).
+#
 # Required repository VARIABLES:
 #   CLOUDSQL_CONNECTION   Cloud SQL connection name: PROJECT:REGION:INSTANCE
 #
