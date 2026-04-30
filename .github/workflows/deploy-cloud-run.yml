@@ -13,15 +13,12 @@
 # Billing: Artifact Registry and Cloud Run require an active billing account linked to the GCP project
 # (BILLING_DISABLED will fail repo create / deploy until billing is enabled in Cloud Console).
 #
-# Required repository VARIABLES:
-#   CLOUDSQL_CONNECTION   Cloud SQL connection name: PROJECT:REGION:INSTANCE
+# Retrieval uses on-disk FAISS + pickle bundled in the image (no Cloud SQL / DATABASE_URL).
 #
-# Optional VARIABLES (defaults shown in "Set environment" step):
-#   GCP_REGION, CLOUD_RUN_SERVICE, ARTIFACT_REPO, IMAGE_NAME,
-#   OPENAI_SECRET_NAME, DATABASE_SECRET_NAME
+# Optional repository VARIABLES:
+#   GCP_REGION, CLOUD_RUN_SERVICE, ARTIFACT_REPO, IMAGE_NAME, OPENAI_SECRET_NAME
 #
-# One-time GCP: Secret Manager secrets (e.g. openai-api-key, database-url), IAM on Cloud Run SA
-# (secretAccessor + cloudsql.client). See scripts/deploy_cloud_run.ps1.
+# One-time GCP: Secret Manager secret openai-api-key; runtime SA needs roles/secretmanager.secretAccessor.
 
 name: Deploy to Cloud Run
 
@@ -51,13 +48,11 @@ jobs:
           GCP_PROJECT: ${{ secrets.GCP_PROJECT }}
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-          CLOUDSQL_CONNECTION: ${{ vars.CLOUDSQL_CONNECTION }}
         run: |
           PROJECT_ID="${GCP_PROJECT:-}"
           [ -z "$PROJECT_ID" ] && PROJECT_ID="${GCP_PROJECT_ID:-}"
           if [ -z "$PROJECT_ID" ]; then echo "Missing secret GCP_PROJECT or GCP_PROJECT_ID"; exit 1; fi
           if [ -z "$GCP_SA_KEY" ]; then echo "Missing secret GCP_SA_KEY"; exit 1; fi
-          if [ -z "$CLOUDSQL_CONNECTION" ]; then echo "Missing variable CLOUDSQL_CONNECTION"; exit 1; fi
           REGION="${{ vars.GCP_REGION }}"
           [ -z "$REGION" ] && REGION="us-central1"
           SERVICE="${{ vars.CLOUD_RUN_SERVICE }}"
@@ -68,15 +63,12 @@ jobs:
           [ -z "$IMAGE_BASENAME" ] && IMAGE_BASENAME="medical-cost-api"
           OPENAI_SECRET="${{ vars.OPENAI_SECRET_NAME }}"
           [ -z "$OPENAI_SECRET" ] && OPENAI_SECRET="openai-api-key"
-          DATABASE_SECRET="${{ vars.DATABASE_SECRET_NAME }}"
-          [ -z "$DATABASE_SECRET" ] && DATABASE_SECRET="database-url"
           echo "PROJECT_ID=$PROJECT_ID" >> "$GITHUB_OUTPUT"
           echo "REGION=$REGION" >> "$GITHUB_OUTPUT"
           echo "SERVICE=$SERVICE" >> "$GITHUB_OUTPUT"
           echo "AR_REPO=$AR_REPO" >> "$GITHUB_OUTPUT"
           echo "IMAGE_BASENAME=$IMAGE_BASENAME" >> "$GITHUB_OUTPUT"
           echo "OPENAI_SECRET=$OPENAI_SECRET" >> "$GITHUB_OUTPUT"
-          echo "DATABASE_SECRET=$DATABASE_SECRET" >> "$GITHUB_OUTPUT"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -143,9 +135,8 @@ jobs:
             --timeout 300 \
             --concurrency 20 \
             --set-env-vars "PRELOAD_FAISS=true,LOG_LEVEL=INFO,ENVIRONMENT=production" \
-            --add-cloudsql-instances "${{ vars.CLOUDSQL_CONNECTION }}" \
             --allow-unauthenticated \
-            --set-secrets "OPENAI_API_KEY=${{ steps.env.outputs.OPENAI_SECRET }}:latest,DATABASE_URL=${{ steps.env.outputs.DATABASE_SECRET }}:latest"
+            --set-secrets "OPENAI_API_KEY=${{ steps.env.outputs.OPENAI_SECRET }}:latest"
 
       - name: Smoke test /health
         run: |

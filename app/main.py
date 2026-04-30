@@ -1,33 +1,37 @@
-# main.py
+# app/main.py — Production FastAPI application
+
+import asyncio
+import time
+import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.router import router as service_code_router
+from app.config.settings import settings
 from app.core.logger import logger
-import os
-from app.services.impl.retrieval_service_impl import RetrievalServiceImpl
 
 app = FastAPI(
     title="Medical Cost Estimation API",
-    description="Complete workflow for medical cost estimation: Query Guardrail → Service Code Resolution → Provider Lookup → Cost Estimation",
+    description=(
+        "Production workflow: Query Guardrail -> Service Code Resolution (FAISS) "
+        "-> Provider Lookup -> Cost Estimation"
+    ),
     version="2.0.0",
 )
 
-# -------------------------
-# CORS middleware
-# -------------------------
+# ── CORS ──────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# -------------------------
-# Observability middleware & routes
-# -------------------------
+
+# ── Observability (Prometheus + OpenTelemetry) ────────────────
 try:
     from app.core.observability.metrics.prometheus_metrics import (
         PrometheusMiddleware,
@@ -35,96 +39,128 @@ try:
     )
     from app.core.observability.tracing import initialize_tracing
 
-    # Add Prometheus middleware (records latency, counts, errors)
     app.add_middleware(PrometheusMiddleware)
+    app.add_api_route("/metrics", metrics_endpoint, methods=["GET"])
 
-    # Expose /metrics for Prometheus scraping
-    app.add_api_route("/metrics", metrics_endpoint, methods=["GET"])  # noqa: E305
-
-    # Initialize OpenTelemetry tracing (safe no-op if packages missing)
-    initialize_tracing(app)
+    if settings.enable_tracing:
+        initialize_tracing(app)
 except Exception:
-    # Observability should never prevent the app from starting
     logger.warning("Observability (Prometheus/OpenTelemetry) not fully available")
 
-# -------------------------
-# Global error handler middleware
-# -------------------------
+
+# ── Request ID + Timeout middleware ───────────────────────────
 @app.middleware("http")
-async def error_handling_middleware(request: Request, call_next):
-    """Global error handler for all requests"""
+async def request_context_middleware(request: Request, call_next):
+    request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
+    request.state.request_id = request_id
+    start = time.perf_counter()
+
     try:
-        response = await call_next(request)
+        response = await asyncio.wait_for(
+            call_next(request),
+            timeout=settings.request_timeout_seconds,
+        )
+        response.headers["x-request-id"] = request_id
+        elapsed = (time.perf_counter() - start) * 1000
+        response.headers["x-response-time-ms"] = f"{elapsed:.2f}"
         return response
+    except asyncio.TimeoutError:
+        elapsed = (time.perf_counter() - start) * 1000
+        logger.error("Request timed out after %.0fms [%s %s]", elapsed, request.method, request.url.path)
+        return JSONResponse(
+            status_code=504,
+            content={
+                "success": False,
+                "error": "Request timed out",
+                "error_code": "TIMEOUT",
+                "request_id": request_id,
+            },
+            headers={"x-request-id": request_id},
+        )
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        logger.error("Unexpected error: %s", e, exc_info=True)
         return JSONResponse(
             status_code=500,
             content={
                 "success": False,
                 "error": "Internal server error",
-                "detail": str(e)
-            }
+                "error_code": "INTERNAL_ERROR",
+                "request_id": request_id,
+            },
+            headers={"x-request-id": request_id},
         )
 
-# -------------------------
-# Register routers
-# -------------------------
+
+# ── Routes ────────────────────────────────────────────────────
 app.include_router(service_code_router)
 
-# -------------------------
-# Health check
-# -------------------------
+
 @app.get("/health")
-def health_check():
-    """
-    Lightweight health endpoint for readiness/liveness checks.
-    """
-    return {"status": "ok"}
+async def health_check():
+    return {
+        "status": "ok",
+        "environment": settings.environment,
+        "version": "2.0.0",
+    }
 
 
-# -------------------------
-# Readiness & Startup
-# -------------------------
 @app.get("/ready")
-def readiness_check():
-    """
-    Readiness endpoint: returns 200 only when FAISS index and metadata are loaded.
-    This prevents the LB from sending traffic to a pod before vector index is memory-resident.
-    """
+async def readiness_check():
     try:
+        from app.services.impl.retrieval_service_impl import RetrievalServiceImpl
         RetrievalServiceImpl()._load_resources()
-        return {"ready": True, "faiss_loaded": True}
+        return {
+            "ready": True,
+            "vector_backend": "faiss",
+            "faiss_ready": True,
+        }
     except Exception as e:
-        logger.warning("Readiness check: FAISS not loaded yet: %s", e)
-        return JSONResponse(status_code=503, content={"ready": False, "faiss_loaded": False, "error": str(e)})
+        logger.warning("Readiness: FAISS retrieval not ready: %s", e)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "vector_backend": "faiss",
+                "faiss_ready": False,
+                "error": str(e),
+            },
+        )
 
 
+# ── Startup ───────────────────────────────────────────────────
 @app.on_event("startup")
-def on_startup():
+async def on_startup():
     logger.info("=" * 80)
     logger.info("Medical Cost Estimation API starting")
+    logger.info("  Environment : %s", settings.environment)
+    logger.info("  LLM Model   : %s", settings.llm_model_name)
+    logger.info("  Embedding   : %s", settings.embedding_model_name)
+    logger.info("  Rate Limit  : %d RPM", settings.rate_limit_rpm)
     logger.info("=" * 80)
 
-    # Optionally preload FAISS (recommended for low first-request latency)
-    preload = os.getenv("PRELOAD_FAISS", "true").lower() in ("1", "true", "yes")
-    if preload:
+    if settings.preload_faiss:
         try:
-            logger.info("Preloading FAISS index into memory (this may increase startup time)...")
-            RetrievalServiceImpl()._load_resources()
-            logger.info("FAISS index preloaded successfully")
-        except Exception as ex:
-            logger.exception("Failed to preload FAISS index on startup: %s", ex)
+            from app.services.impl.retrieval_service_impl import RetrievalServiceImpl
 
-    logger.info("Architecture: Using MCP (Model Context Protocol)")
-    logger.info("  • Step 1: Query Guardrail (Local)")
-    logger.info("  • Step 2: Service Code Resolution (Local)")
-    logger.info("  • Step 3: Provider Lookup (MCP Server)")
-    logger.info("  • Step 4: Cost Estimator (MCP Server)")
-    logger.info("\nAvailable endpoints:")
-    logger.info("  GET  /health - Health check")
-    logger.info("  GET  /ready  - Readiness (FAISS loaded)")
-    logger.info("  GET  /resolve-service-codes - Step 2: Service code resolution only")
-    logger.info("  POST /resolve-service-codes/complete-workflow - Steps 1-4: Complete workflow")
-    logger.info("\nAPI Documentation: http://localhost:8000/docs")
-    logger.info("=" * 80) 
+            logger.info("Warming FAISS index + metadata...")
+            RetrievalServiceImpl()._load_resources()
+            logger.info("FAISS retrieval warmed successfully")
+        except Exception as ex:
+            logger.exception("Failed to warm FAISS retrieval: %s", ex)
+
+    # Eagerly init workflow (starts MCP servers)
+    try:
+        from app.workflows.medical_cost_workflow import get_workflow
+        get_workflow()
+    except Exception as ex:
+        logger.exception("Workflow init error: %s", ex)
+
+    logger.info("Endpoints:")
+    logger.info("  GET  /health")
+    logger.info("  GET  /ready")
+    logger.info("  GET  /resolve-service-codes")
+    logger.info("  POST /resolve-service-codes/complete-workflow")
+    logger.info("  POST /resolve-service-codes/stream")
+    logger.info("  GET  /metrics")
+    logger.info("  GET  /docs")
+    logger.info("=" * 80)
