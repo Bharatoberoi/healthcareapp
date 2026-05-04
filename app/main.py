@@ -4,8 +4,10 @@ import asyncio
 import time
 import uuid
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router as service_code_router
@@ -93,6 +95,15 @@ async def request_context_middleware(request: Request, call_next):
 
 # ── Routes ────────────────────────────────────────────────────
 app.include_router(service_code_router)
+
+_FRONTEND_HTML = Path(__file__).resolve().parent.parent / "frontend.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
+    if _FRONTEND_HTML.exists():
+        return HTMLResponse(content=_FRONTEND_HTML.read_text(encoding="utf-8"))
+    return HTMLResponse(content="<h1>Medical Cost Estimation API</h1><p>Visit <a href='/docs'>/docs</a> for API documentation.</p>")
 
 
 @app.get("/health")
