@@ -1,0 +1,39 @@
+{
+  "displayName": "Cloud Run API - no healthy revision",
+  "combiner": "OR",
+  "enabled": true,
+  "documentation": {
+    "content": "No active instance detected for backend service for 10 minutes.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "Active instances below 1 for 10m",
+      "conditionThreshold": {
+        "filter": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"medical-cost-api\" AND metric.type=\"run.googleapis.com/container/instance_count\" AND metric.labels.state=\"active\"",
+        "comparison": "COMPARISON_LT",
+        "thresholdValue": 1,
+        "duration": "600s",
+        "trigger": {
+          "count": 1
+        },
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MAX",
+            "crossSeriesReducer": "REDUCE_MAX",
+            "groupByFields": [
+              "resource.labels.service_name"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "alertStrategy": {
+    "autoClose": "1800s"
+  },
+  "notificationChannels": [
+    "projects/test1-493607/notificationChannels/14742599308437223410"
+  ]
+}

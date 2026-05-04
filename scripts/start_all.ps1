@@ -20,9 +20,9 @@ if (-not (Test-Path $python)) {
 $logs = Join-Path $projectRoot 'logs'
 if (-not (Test-Path $logs)) { New-Item -ItemType Directory -Path $logs | Out-Null }
 
-function Start-App($name, [string[]]$args) {
-    Write-Host "Starting: $name -> $($args -join ' ')" -ForegroundColor Cyan
-    $proc = Start-Process -FilePath $python -ArgumentList $args -PassThru
+function Start-App($name, [string[]]$appArgs) {
+    Write-Host "Starting: $name -> $($appArgs -join ' ')" -ForegroundColor Cyan
+    $proc = Start-Process -FilePath $python -ArgumentList $appArgs -PassThru
     Start-Sleep -Milliseconds 300
     return @{ name = $name; pid = $proc.Id }
 }

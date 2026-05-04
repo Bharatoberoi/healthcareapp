@@ -1,11 +1,8 @@
-# config/llms.py
+# config/llms.py — thin compatibility layer over centralized settings
 
+from app.config.settings import settings
 
-## ---------- Claude Models ----------
-RAG_MODEL_NAME = "claude-haiku-4.5"
-SERVICE_RESOLVER_MODEL_NAME = "claude-haiku-4.5"
-CLAUDE_MODEL_NAME = "claude-haiku-4.5"
-
-# ---------- Embeddings ----------
-# Keep using Vertex embeddings (NO CHANGE)
-EMBEDDING_MODEL_NAME = "text-embedding-004"
+LLM_MODEL_NAME = settings.llm_model_name
+RAG_MODEL_NAME = settings.llm_model_name
+SERVICE_RESOLVER_MODEL_NAME = settings.llm_model_name
+EMBEDDING_MODEL_NAME = settings.embedding_model_name

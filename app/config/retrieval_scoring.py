@@ -1,11 +1,9 @@
-# Vector store paths (replace with production paths as needed)
+# config/retrieval_scoring.py — thin compatibility layer over centralized settings
 
-FAISS_INDEX_PATH = "app/scm_index_v2.faiss"
-FAISS_METADATA_PATH = "app/scm_metadata_v2.pkl"
+from app.config.settings import settings
 
-# Retrieval parameters
-TOP_K_RESULTS = 10
-
-# Weighted score coefficients
-SEMANTIC_SIMILARITY_WEIGHT = 0.8
-CLAIM_VOLUME_WEIGHT = 0.2
+FAISS_INDEX_PATH = settings.faiss_index_path
+FAISS_METADATA_PATH = settings.faiss_metadata_path
+TOP_K_RESULTS = settings.top_k_results
+SEMANTIC_SIMILARITY_WEIGHT = settings.semantic_similarity_weight
+CLAIM_VOLUME_WEIGHT = settings.claim_volume_weight

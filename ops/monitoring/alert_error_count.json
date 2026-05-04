@@ -1,0 +1,39 @@
+{
+  "displayName": "Cloud Run API - error count high",
+  "combiner": "OR",
+  "enabled": true,
+  "documentation": {
+    "content": "High non-2xx response count on backend service.",
+    "mimeType": "text/markdown"
+  },
+  "conditions": [
+    {
+      "displayName": "Non-2xx responses > 20 in 5m",
+      "conditionThreshold": {
+        "filter": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"medical-cost-api\" AND metric.type=\"run.googleapis.com/request_count\" AND metric.labels.response_code_class!=\"2xx\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 20,
+        "duration": "300s",
+        "trigger": {
+          "count": 1
+        },
+        "aggregations": [
+          {
+            "alignmentPeriod": "300s",
+            "perSeriesAligner": "ALIGN_DELTA",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "groupByFields": [
+              "resource.labels.service_name"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "alertStrategy": {
+    "autoClose": "1800s"
+  },
+  "notificationChannels": [
+    "projects/test1-493607/notificationChannels/14742599308437223410"
+  ]
+}

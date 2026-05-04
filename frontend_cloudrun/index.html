@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medical Cost Frontend</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f6f8fb; color: #1f2937; }
+    .wrap { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    h1 { margin-top: 0; }
+    .row { margin-bottom: 12px; }
+    input, button { padding: 10px; font-size: 14px; }
+    input { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; }
+    button { border: 0; background: #6c63ff; color: white; border-radius: 8px; cursor: pointer; }
+    pre { background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; min-height: 120px; overflow: auto; }
+    .links { margin-top: 16px; font-size: 14px; }
+    .links a { color: #4f46e5; text-decoration: none; margin-right: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Medical Cost Estimator Frontend</h1>
+    <p>This frontend is hosted on Cloud Run and calls your deployed backend API.</p>
+
+    <div class="row">
+      <label>Query</label>
+      <input id="query" value="I need an MRI for my knee injury" />
+    </div>
+    <div class="row">
+      <button onclick="run()">Run Service Code Resolution</button>
+    </div>
+
+    <pre id="out">No response yet.</pre>
+
+    <div class="links">
+      <a href="https://medical-cost-api-kphoa2qrta-uc.a.run.app/docs" target="_blank" rel="noopener noreferrer">API Docs</a>
+      <a href="https://medical-cost-api-kphoa2qrta-uc.a.run.app/health" target="_blank" rel="noopener noreferrer">API Health</a>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://medical-cost-api-kphoa2qrta-uc.a.run.app";
+    async function run() {
+      const q = document.getElementById("query").value.trim();
+      const out = document.getElementById("out");
+      if (!q) {
+        out.textContent = "Please enter a query.";
+        return;
+      }
+      out.textContent = "Loading...";
+      try {
+        const res = await fetch(`${API}/resolve-service-codes?query=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = `Request failed: ${e.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

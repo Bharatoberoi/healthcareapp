@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": ".git"
+		},
+		{
+			"path": ".github"
+		},
+		{
+			"path": ".venv"
+		},
+		{
+			"path": "actions_logs"
+		},
+		{
+			"path": "app"
+		},
+		{
+			"path": "k8s"
+		},
+		{
+			"path": "load-test"
+		},
+		{
+			"path": "scripts"
+		}
+	]
+}

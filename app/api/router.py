@@ -1,101 +1,178 @@
-# api/router.py
+# api/router.py — async endpoints with SSE streaming
 
-from fastapi import APIRouter, Query, Body
+import json
+import time
+import uuid
+
+from fastapi import APIRouter, Query, Body, Request
+from fastapi.responses import JSONResponse
+from sse_starlette.sse import EventSourceResponse
+
+from app.schemas.request import CompleteWorkflowRequest
+from app.schemas.response import ErrorResponse
 from app.services.impl.retrieval_service_impl import RetrievalServiceImpl
 from app.workflows.medical_cost_workflow import get_workflow
-from app.schemas.request import QueryRequest, CompleteWorkflowRequest
+from app.services.impl.rate_limiter import RateLimiter
+from app.config.settings import settings
+from app.core.logger import logger
 
 router = APIRouter(prefix="/resolve-service-codes", tags=["Service Code Resolution"])
 
-# Instantiate service once (singleton-style)
-retrieval_service = RetrievalServiceImpl()
-workflow = get_workflow()
+_retrieval_service: RetrievalServiceImpl | None = None
+_rate_limiter = RateLimiter(settings.rate_limit_rpm)
 
 
+def _get_retrieval() -> RetrievalServiceImpl:
+    global _retrieval_service
+    if _retrieval_service is None:
+        _retrieval_service = RetrievalServiceImpl()
+    return _retrieval_service
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_rate_limit(request: Request):
+    """Return an error JSONResponse if rate-limited, else None."""
+    if not _rate_limiter.enabled:
+        return None
+    allowed, retry_after = _rate_limiter.allow(_client_ip(request))
+    if not allowed:
+        return JSONResponse(
+            status_code=429,
+            content=ErrorResponse(
+                error="Rate limit exceeded",
+                error_code="RATE_LIMITED",
+                detail=f"Try again in {retry_after}s",
+            ).model_dump(),
+            headers={"Retry-After": str(retry_after)},
+        )
+    return None
+
+
+# ── GET: service code resolution only ─────────────────────────
 @router.get("")
-def resolve_service_codes(
-    query: str = Query(..., description="Natural language query or service code (e.g. 99213)")
+async def resolve_service_codes(
+    request: Request,
+    query: str = Query(..., min_length=1, max_length=2000,
+                       description="Natural language query or service code"),
 ):
     """
-    **STEP 2: SERVICE CODE RESOLUTION API**
-    
-    Resolves medical service codes from natural language queries.
-    
-    **Supported inputs:**
-    - Natural language queries (e.g. 'chiropractor visit')
-    - Direct service codes (e.g. '99213')
-
-    **Processed through:**
-    - Query Enhancement (RAG with OpenAI Embeddings + FAISS Vector Search)
-    - Code Selection (LLM with semantic similarity scoring 70% + claim volume weighting 30%)
-
-    **Behavior:**
-    - Valid service code → primary + alternatives
-    - Invalid service code → Out-of-Scope response
-    - Non-medical query → Out-of-Scope response
-    
-    **Response includes:**
-    - Primary service code
-    - Service type and description
-    - Alternative service codes
-    - Confidence score
+    Step 2 only: resolve medical service codes from natural language.
     """
-    return retrieval_service.resolve_service_code(query=query)
+    rl = _check_rate_limit(request)
+    if rl:
+        return rl
+
+    retrieval = _get_retrieval()
+    result = await retrieval.async_resolve_service_code(query=query)
+    return result
 
 
+# ── POST: complete workflow ───────────────────────────────────
 @router.post("/complete-workflow")
-def complete_workflow(request: CompleteWorkflowRequest = Body(...)):
+async def complete_workflow(
+    request: Request,
+    body: CompleteWorkflowRequest = Body(...),
+):
     """
-    **COMPLETE WORKFLOW: All 4 Steps Combined**
-    
-    Orchestrates the complete medical cost estimation workflow:
-    
-    **STEP 1: Query Guardrail**
-    - Pattern Matching (harmful content detection)
-    - OpenAI Moderation API
-    - Semantic Similarity Check
-    - Intent Classification
-    - **Decision:** Valid Medical Query or Out-of-Scope/Harmful
-    
-    **STEP 2: Service Code Resolution**
-    - Query Enhancement (RAG with embeddings + FAISS search)
-    - Code Selection (LLM with semantic scoring 70% + claim volume 30%)
-    - **Output:** Primary code + alternatives + confidence score
-    
-    **STEP 3: Provider Lookup**
-    - Search in-network providers by service code
-    - Filter by distance and rating
-    - Check availability and network status
-    - **Output:** Provider list with contracted rates and ratings
-    
-    **STEP 4: Cost Estimation**
-    - Calculate patient responsibility
-    - Applied to deductible or coinsurance
-    - Insurance breakdown and explanation
-    - **Output:** Cost estimate with insurance breakdown
-    
-    **Request parameters:**
-    - `query` (required): User's natural language query (e.g., "I need a chiropractor visit for back pain")
-    - `user_location` (optional): User's zipcode or coordinates
-    - `insurance_network` (optional): Insurance network name (e.g., "Aetna", "UHC")
-    - `insurance_details` (optional): Insurance plan details
-      - deductible_total: Total deductible amount
-      - deductible_met: Amount already met
-      - copay: Copay amount per visit
-      - coinsurance: Coinsurance percentage (e.g., 20 for 20%)
-      - out_of_pocket_max: Maximum out-of-pocket
-      - out_of_pocket_met: Amount already met
-    
-    **Response includes:**
-    - Complete workflow status for all 4 steps
-    - Service code information
-    - Provider details
-    - Cost breakdown (patient vs insurance responsibility)
-    - User-friendly message with recommendations
+    Complete 4-step workflow: Guardrail -> Service Code -> Provider -> Cost.
     """
-    return workflow.run(
-        user_query=request.query,
-        user_location=request.user_location,
-        insurance_network=request.insurance_network,
-        insurance_details=request.insurance_details
+    rl = _check_rate_limit(request)
+    if rl:
+        return rl
+
+    request_id = str(uuid.uuid4())
+    workflow = get_workflow()
+
+    insurance = None
+    if body.insurance_details:
+        insurance = body.insurance_details.model_dump(by_alias=False)
+
+    result = await workflow.arun(
+        user_query=body.query,
+        user_location=body.user_location or "",
+        insurance_network=body.insurance_network or "",
+        insurance_details=insurance,
+        request_id=request_id,
     )
+    return result
+
+
+# ── POST: streaming workflow via SSE ──────────────────────────
+@router.post("/stream")
+async def stream_workflow(
+    request: Request,
+    body: CompleteWorkflowRequest = Body(...),
+):
+    """
+    Stream workflow progress via Server-Sent Events.
+
+    Each step emits:
+      event: step_started   data: {"step": "...", "step_number": N}
+      event: step_completed data: {"step": "...", "duration_ms": ..., "result": "..."}
+
+    Final event:
+      event: workflow_complete data: { ... full response ... }
+    """
+    rl = _check_rate_limit(request)
+    if rl:
+        return rl
+
+    request_id = str(uuid.uuid4())
+
+    async def _event_generator():
+        workflow = get_workflow()
+        insurance = None
+        if body.insurance_details:
+            insurance = body.insurance_details.model_dump(by_alias=False)
+
+        # Emit start
+        yield {
+            "event": "workflow_started",
+            "data": json.dumps({"request_id": request_id, "query": body.query}),
+        }
+
+        # Run the full workflow
+        start = time.perf_counter()
+        result = await workflow.arun(
+            user_query=body.query,
+            user_location=body.user_location or "",
+            insurance_network=body.insurance_network or "",
+            insurance_details=insurance,
+            request_id=request_id,
+        )
+        total_ms = (time.perf_counter() - start) * 1000
+
+        # Emit per-step events from the workflow trace
+        trace = result.get("workflow_trace", [])
+        step_num = 0
+        for entry in trace:
+            step_num += 1
+            yield {
+                "event": "step_completed",
+                "data": json.dumps({
+                    "step": entry.get("step", ""),
+                    "step_number": step_num,
+                    "status": entry.get("status", ""),
+                    "duration_ms": entry.get("duration_ms", 0),
+                    "detail": entry.get("detail", ""),
+                }),
+            }
+
+        # Final event
+        event_type = "workflow_complete" if result.get("success") else "workflow_error"
+        yield {
+            "event": event_type,
+            "data": json.dumps({
+                "request_id": request_id,
+                "total_duration_ms": round(total_ms, 2),
+                **result,
+            }),
+        }
+
+    return EventSourceResponse(_event_generator())

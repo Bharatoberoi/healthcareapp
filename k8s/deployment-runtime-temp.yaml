@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-code-resolution-api
+  namespace: default
+  labels:
+    app: service-code-resolution-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: service-code-resolution-api
+  template:
+    metadata:
+      labels:
+        app: service-code-resolution-api
+    spec:
+      volumes:
+      - name: app-code
+        emptyDir: {}
+      initContainers:
+      - name: fetch-source-and-deps
+        image: python:3.11-slim
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -euo pipefail
+          apt-get update && apt-get install -y --no-install-recommends curl gcc git && rm -rf /var/lib/apt/lists/*
+          echo "Downloading source + installing dependencies (initContainer) using git clone..."
+          git clone --depth=1 https://github.com/Bharatoberoi/healthcareapp.git /tmp/src
+          pip install --no-cache-dir --target /app/python -r /tmp/src/requirements.txt
+          cp -a /tmp/src/* /app/
+          echo "Init complete"
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+        securityContext:
+          runAsUser: 0
+      containers:
+      - name: api
+        image: python:3.11-slim
+        command: ["/bin/sh","-c"]
+        args: ["export PYTHONPATH=/app/python:/app && cd /app && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: PRELOAD_FAISS
+          value: "true"
+        - name: LOG_LEVEL
+          value: "INFO"
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 6

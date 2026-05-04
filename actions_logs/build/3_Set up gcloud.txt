@@ -1,0 +1,15 @@
+﻿2026-02-16T15:00:31.8793613Z ##[warning]Unexpected input(s) 'service_account_key', 'export_default_credentials', valid inputs are ['skip_install', 'version', 'project_id', 'install_components']
+2026-02-16T15:00:31.8827972Z ##[group]Run google-github-actions/setup-gcloud@v1
+2026-02-16T15:00:31.8829501Z with:
+2026-02-16T15:00:31.8831036Z   project_id: ***
+2026-02-16T15:00:31.8866909Z   service_account_key: ***
+
+2026-02-16T15:00:31.8868385Z   export_default_credentials: true
+2026-02-16T15:00:31.8869723Z   skip_install: false
+2026-02-16T15:00:31.8870878Z   version: latest
+2026-02-16T15:00:31.8871974Z env:
+2026-02-16T15:00:31.8874002Z   IMAGE: gcr.io/***/service-code-resolution-api:be93860903a4dc5ac03c3da18630390739ab81da
+2026-02-16T15:00:31.8876176Z ##[endgroup]
+2026-02-16T15:00:34.6003835Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/ff2aa415-3232-485e-b3f7-29f12144179e -f /home/runner/work/_temp/fcb551a2-8a98-4f2d-852d-5cc01b275acb
+2026-02-16T15:00:55.8721946Z ##[warning]No authentication found for gcloud, authenticate with `google-github-actions/auth`.
+2026-02-16T15:00:59.1521353Z Successfully set default project

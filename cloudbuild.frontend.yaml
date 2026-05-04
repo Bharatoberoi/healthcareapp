@@ -1,0 +1,11 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - frontend_cloudrun/Dockerfile
+      - -t
+      - us-central1-docker.pkg.dev/test1-493607/cloud-run-source/medical-cost-frontend:latest
+      - .
+images:
+  - us-central1-docker.pkg.dev/test1-493607/cloud-run-source/medical-cost-frontend:latest

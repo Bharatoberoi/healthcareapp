@@ -1,0 +1,22 @@
+services:
+  - type: web
+    runtime: docker
+    name: medical-cost-rag
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: PRELOAD_FAISS
+        value: "true"
+      - key: UVICORN_WORKERS
+        value: "1"
+      - key: LOG_LEVEL
+        value: "INFO"
+      - key: LOG_FORMAT
+        value: "json"
+      - key: ENVIRONMENT
+        value: "production"
+      - key: OPENAI_API_KEY
+        sync: false
