@@ -303,9 +303,7 @@
 </div>
 
 <script>
-const API = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000'
-  : 'https://medical-cost-api-kphoa2qrta-uc.a.run.app';
+const API = window.location.origin;
 let testHistory = [];
 let lastJson = null;
 let currentTab = 'workflow';
